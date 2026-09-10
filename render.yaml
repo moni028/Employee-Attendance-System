@@ -2,14 +2,12 @@ services:
   - type: web
     name: employee-attendance
     runtime: python
-    buildCommand: pip install -r requirements.txt && flask --app run.py db upgrade
-    startCommand: gunicorn --bind 0.0.0.0:$PORT run:app
+    buildCommand: pip install -r requirements.txt
+    startCommand: flask --app run.py db upgrade && gunicorn --bind 0.0.0.0:$PORT run:app
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: employee-attendance-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: APP_TIMEZONE
@@ -24,8 +22,3 @@ services:
         value: "0"
       - key: HALF_DAY_THRESHOLD_HOURS
         value: "4"
-
-databases:
-  - name: employee-attendance-db
-    databaseName: employee_attendance
-    user: attendance_app
