@@ -1,12 +1,12 @@
 from urllib.parse import urljoin, urlparse
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import or_
 from sqlalchemy.exc import OperationalError
 
 from app.extensions import db
-from app.forms import LoginForm
+from app.forms import ChangePasswordForm, LoginForm
 from app.models import User
 
 
@@ -46,6 +46,21 @@ def login():
         flash("Invalid credentials or inactive account.", "danger")
 
     return render_template("auth/login.html", form=form)
+
+
+@auth_bp.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if not current_user.check_password(form.current_password.data):
+            form.current_password.errors.append("Current password is incorrect.")
+        else:
+            current_user.set_password(form.new_password.data)
+            db.session.commit()
+            flash("Your password has been changed.", "success")
+            return redirect(url_for("dashboard"))
+    return render_template("auth/change_password.html", form=form)
 
 
 @auth_bp.post("/logout")
