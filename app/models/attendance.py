@@ -1,7 +1,30 @@
 from datetime import datetime, timezone
 
+from flask import current_app
+from sqlalchemy.types import TypeDecorator
+from zoneinfo import ZoneInfo
+
 from app.extensions import db
 from .enums import AttendanceStatus
+
+
+class LocalDateTime(TypeDecorator):
+    impl = db.DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=ZoneInfo(current_app.config["TIMEZONE"]))
+        return value.astimezone(timezone.utc)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(ZoneInfo(current_app.config["TIMEZONE"]))
 
 
 class Attendance(db.Model):
@@ -11,8 +34,8 @@ class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey("employees.id"), nullable=False, index=True)
     attendance_date = db.Column(db.Date, nullable=False, index=True)
-    check_in = db.Column(db.DateTime(timezone=True))
-    check_out = db.Column(db.DateTime(timezone=True))
+    check_in = db.Column(LocalDateTime())
+    check_out = db.Column(LocalDateTime())
     status = db.Column(db.Enum(AttendanceStatus, name="attendance_status"), nullable=False, index=True)
     working_hours = db.Column(db.Numeric(5, 2), nullable=False, default=0)
     overtime_hours = db.Column(db.Numeric(5, 2), nullable=False, default=0)

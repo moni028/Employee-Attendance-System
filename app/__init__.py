@@ -10,7 +10,7 @@ from .routes.attendance import attendance_bp
 from .routes.admin import admin_bp
 from .routes.employee import employee_bp
 from .models.enums import AttendanceStatus, LeaveStatus, UserRole
-from .utils.time import local_now, local_today
+from .utils.time import local_now, local_time, local_today
 
 
 def create_app(config_class=Config):
@@ -30,6 +30,7 @@ def create_app(config_class=Config):
             "office_end_time": app.config["OFFICE_END_TIME"].strftime("%I:%M %p"),
             "current_date": f"{now:%A}, {now:%B} {now.day}, {now:%Y}",
             "current_time": now.strftime("%I:%M %p"),
+            "local_time": local_time,
         }
 
     login_manager.user_loader(lambda user_id: db.session.get(models.User, int(user_id)))
