@@ -47,14 +47,14 @@ def today_attendance():
     profile_error = _employee_required()
     if profile_error:
         return profile_error
-    from datetime import date
     from app.extensions import db
     from app.models import Attendance
+    from app.utils.time import local_today
 
     attendance = db.session.scalar(
         db.select(Attendance).where(
             Attendance.employee_id == current_user.employee.id,
-            Attendance.attendance_date == date.today(),
+            Attendance.attendance_date == local_today(),
         )
     )
     if not attendance:

@@ -1,5 +1,3 @@
-from datetime import date
-
 from flask import Flask, jsonify, render_template
 from flask_login import current_user, login_required
 
@@ -12,6 +10,7 @@ from .routes.attendance import attendance_bp
 from .routes.admin import admin_bp
 from .routes.employee import employee_bp
 from .models.enums import AttendanceStatus, LeaveStatus, UserRole
+from .utils.time import local_now, local_today
 
 
 def create_app(config_class=Config):
@@ -25,9 +24,12 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def office_schedule():
+        now = local_now()
         return {
             "office_start_time": app.config["OFFICE_START_TIME"].strftime("%I:%M %p"),
             "office_end_time": app.config["OFFICE_END_TIME"].strftime("%I:%M %p"),
+            "current_date": f"{now:%A}, {now:%B} {now.day}, {now:%Y}",
+            "current_time": now.strftime("%I:%M %p"),
         }
 
     login_manager.user_loader(lambda user_id: db.session.get(models.User, int(user_id)))
@@ -46,12 +48,12 @@ def create_app(config_class=Config):
                 attendance = db.session.scalar(
                     db.select(models.Attendance).where(
                         models.Attendance.employee_id == current_user.employee.id,
-                        models.Attendance.attendance_date == date.today(),
+                        models.Attendance.attendance_date == local_today(),
                     )
                 )
             return render_template("employee_dashboard.html", attendance=attendance)
 
-        today = date.today()
+        today = local_today()
         stats = {
             "total_employees": db.session.scalar(db.select(db.func.count()).select_from(models.Employee)) or 0,
             "present_today": db.session.scalar(db.select(db.func.count()).select_from(models.Attendance).where(

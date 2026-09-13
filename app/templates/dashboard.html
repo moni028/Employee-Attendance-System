@@ -16,7 +16,7 @@
     </aside>
     <main class="main-content">
         <header class="topbar">
-            <div><span class="eyebrow">Wednesday, September 9, 2026</span><h1>Good evening, {{ current_user.username }}.</h1></div>
+            <div><span class="eyebrow">{{ current_date }} · {{ current_time }}</span><h1>Good evening, {{ current_user.username }}.</h1></div>
             <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" aria-label="Log out" title="Log out"><i class="bi bi-box-arrow-right"></i></button></form>
         </header>
         <section class="hero-strip"><div><span class="eyebrow light">Daily pulse</span><h2>Your team at a glance.</h2><p>Keep attendance, leave, and people operations moving from one place.</p></div><i class="bi bi-sunrise hero-icon"></i></section>
